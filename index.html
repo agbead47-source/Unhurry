@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>느긋 Unhurry — 한 입마다, 쉼표 하나</title>
+<meta name="description" content="너무 빨리 먹으면 살짝 진동으로 알려주는 젓가락 클립 모듈, 느긋.">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+/* hero */
+.hero{position:relative;background:var(--cream);overflow:hidden}
+.hero .wrap{display:grid;grid-template-columns:1fr 1.15fr;gap:40px;align-items:center;min-height:calc(100vh - 64px);max-height:860px;padding-top:48px;padding-bottom:48px}
+.hero h1{font-family:var(--serif);font-weight:700;font-size:clamp(44px,6vw,76px);line-height:1.15;color:var(--forest);letter-spacing:-.02em;margin:14px 0 20px}
+.hero h1 .comma{color:var(--sage)}
+.hero p.lead{font-size:clamp(17px,1.6vw,20px);color:#4A4B44;max-width:30ch;margin-bottom:30px}
+.hero .ctas{display:flex;gap:12px;flex-wrap:wrap}
+.hero .shot{position:relative;border-radius:28px;overflow:hidden;aspect-ratio:1/1;box-shadow:0 30px 60px -30px rgba(56,71,58,.35)}
+.hero .shot img{width:100%;height:100%;object-fit:cover}
+.hero .shot .chip{position:absolute;left:18px;bottom:18px;background:rgba(250,248,243,.92);border-radius:14px;padding:10px 14px;font-size:14px;display:flex;gap:10px;align-items:center}
+.hero .shot .dot{width:10px;height:10px;border-radius:50%;background:#7FD3B0;box-shadow:0 0 0 0 rgba(127,211,176,.7);animation:pulse 2.4s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(127,211,176,.7)}70%{box-shadow:0 0 0 12px rgba(127,211,176,0)}100%{box-shadow:0 0 0 0 rgba(127,211,176,0)}}
+.bigcomma{position:absolute;right:-40px;top:-80px;font-family:var(--serif);font-size:520px;line-height:1;color:var(--sage-soft);opacity:.55;pointer-events:none;user-select:none}
+
+/* section base */
+section.s{padding:110px 0}
+.s-head{max-width:640px;margin-bottom:48px}
+.s-head h2{font-family:var(--serif);font-size:clamp(30px,3.6vw,44px);line-height:1.3;color:var(--forest);margin:10px 0 14px;letter-spacing:-.01em}
+.s-head p{color:var(--muted);font-size:17px}
+
+/* story */
+.story .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.story .item{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:28px 26px}
+.story .item .n{font-family:var(--serif);font-size:40px;color:var(--sage);line-height:1}
+.story .item h3{font-size:19px;margin:14px 0 6px}
+.story .item p{color:var(--muted);font-size:15px}
+
+/* product feature */
+.feature{background:var(--forest);color:#EEF1EA}
+.feature .wrap{display:grid;grid-template-columns:1.1fr 1fr;gap:56px;align-items:center}
+.feature .img{border-radius:24px;overflow:hidden}
+.feature .s-head h2{color:#fff}
+.feature .s-head p{color:#C8D1C0}
+.feature .eyebrow{color:#B5C7A6}
+.feature ul{list-style:none;margin:0 0 32px}
+.feature li{display:flex;gap:14px;padding:14px 0;border-top:1px solid rgba(255,255,255,.14)}
+.feature li b{min-width:92px;color:#fff}
+.feature li span{color:#C8D1C0}
+.feature .price{display:flex;align-items:baseline;gap:10px;margin-bottom:22px}
+.feature .price strong{font-size:30px;color:#fff}
+.feature .price small{color:#AFBBA6}
+.feature .btn-dark{background:#F3EFE7;color:var(--forest)}
+.feature .btn-dark:hover{background:#fff}
+
+/* film */
+.film video{width:100%;border-radius:24px;background:#1d1f1b;aspect-ratio:16/9;object-fit:cover}
+
+/* scenes */
+.scenes .grid{display:grid;grid-template-columns:1.3fr 1fr;grid-template-rows:auto auto;gap:18px}
+.scenes figure{position:relative;border-radius:20px;overflow:hidden;margin:0}
+.scenes figure img{width:100%;height:100%;object-fit:cover}
+.scenes figure:first-child{grid-row:1/3}
+.scenes figcaption{position:absolute;left:0;right:0;bottom:0;padding:40px 22px 18px;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.55));font-size:15px}
+.scenes figcaption b{display:block;font-size:19px;font-family:var(--serif)}
+
+/* cta band */
+.band{background:var(--cream);text-align:center}
+.band h2{font-family:var(--serif);font-size:clamp(28px,3.4vw,42px);color:var(--forest);margin-bottom:12px}
+.band p{color:var(--muted);margin-bottom:28px}
+.tags{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:30px}
+.tags span{color:var(--sage);font-weight:600}
+
+@media (max-width:900px){
+  .hero .wrap{grid-template-columns:1fr;min-height:0;max-height:none;padding-top:36px}
+  .hero .shot{order:-1;aspect-ratio:4/3}
+  .story .grid{grid-template-columns:1fr}
+  .feature .wrap{grid-template-columns:1fr}
+  .scenes .grid{grid-template-columns:1fr}
+  .scenes figure:first-child{grid-row:auto}
+  section.s{padding:72px 0}
+  .bigcomma{font-size:320px;right:-30px;top:auto;bottom:-120px}
+}
+</style>
+</head>
+<body>
+
+<header class="hd">
+  <div class="wrap">
+    <a href="index.html" class="logo">느긋<small>Unhurry</small></a>
+    <nav class="nav" aria-label="주 메뉴">
+      <a href="#story">브랜드 이야기</a>
+      <a href="#product">제품</a>
+      <a href="#film">영상</a>
+      <a href="#scenes">일상 속 느긋</a>
+    </nav>
+    <span class="sp"></span>
+    <a href="product.html" class="btn btn-dark btn-sm">제품 보기</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="bigcomma" aria-hidden="true">,</div>
+  <div class="wrap">
+    <div>
+      <span class="tag">젓가락 클립 모듈</span>
+      <h1>한 입마다,<br>쉼표 하나<span class="comma">,</span></h1>
+      <p class="lead">너무 빨리 먹으면 살짝 진동으로 알려주는 젓가락 클립, <b>느긋</b>. 쓰던 젓가락에 끼우기만 하면 됩니다.</p>
+      <div class="ctas">
+        <a href="product.html" class="btn btn-dark">자세히 보기 →</a>
+        <a href="#film" class="btn btn-line">홍보 영상 보기</a>
+      </div>
+    </div>
+    <div class="shot rv">
+      <img src="assets/product-rest.jpg" alt="수저받침 위에 놓인 나무 젓가락과 세이지색 느긋 클립 모듈">
+      <div class="chip"><span class="dot"></span>지금 천천히 먹고 있어요</div>
+    </div>
+  </div>
+</section>
+
+<section class="s story" id="story">
+  <div class="wrap">
+    <div class="s-head rv">
+      <span class="eyebrow">Our Story</span>
+      <h2>밥 먹는 시간까지<br>서두를 필요는 없으니까</h2>
+      <p>점심시간은 짧고, 야식은 모니터 앞에서. 우리는 생각보다 자주 '먹는다'는 걸 잊은 채 먹습니다. 느긋은 그 속도를 잠깐 돌아보게 하는 작은 신호입니다.</p>
+    </div>
+    <div class="grid">
+      <div class="item rv"><div class="n">01</div><h3>쓰던 젓가락 그대로</h3><p>새 젓가락을 살 필요 없이, 집에 있는 젓가락에 클립처럼 끼웁니다.</p></div>
+      <div class="item rv"><div class="n">02</div><h3>부르르, 작은 알림</h3><p>한 입과 한 입 사이가 너무 짧으면 손끝에 살짝 진동이 옵니다.</p></div>
+      <div class="item rv"><div class="n">03</div><h3>나의 식사 기록</h3><p>블루투스로 앱과 연결해 식사 시간과 한 입 횟수를 돌아볼 수 있어요.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="s feature" id="product">
+  <div class="wrap">
+    <div class="img rv"><img src="assets/product-side.jpg" alt="나무 젓가락에 끼워진 세이지 그린 캡슐형 클립"></div>
+    <div class="rv">
+      <div class="s-head" style="margin-bottom:28px">
+        <span class="eyebrow">Product</span>
+        <h2>느긋 젓가락 클립</h2>
+        <p>손에 쥐었을 때 걸리지 않는 둥근 캡슐 형태, 식탁에 어울리는 세이지 그린.</p>
+      </div>
+      <ul>
+        <li><b>형태</b><span>젓가락 한 짝에 끼우는 클립형</span></li>
+        <li><b>알림</b><span>한 입 간격이 짧으면 약한 진동</span></li>
+        <li><b>연결</b><span>블루투스 · 전용 앱 기록</span></li>
+        <li><b>세척</b><span>모듈만 빼고 젓가락은 그대로 설거지</span></li>
+      </ul>
+      <div class="price"><strong>29,000원</strong><small>가상 가격</small></div>
+      <a href="product.html" class="btn btn-dark">상세 페이지로 →</a>
+    </div>
+  </div>
+</section>
+
+<section class="s film" id="film">
+  <div class="wrap">
+    <div class="s-head rv">
+      <span class="eyebrow">Film</span>
+      <h2>느긋한 한 끼</h2>
+      <p>AI로 만든 느긋 홍보 영상입니다.</p>
+    </div>
+    <video class="rv" src="assets/promo.mp4" controls playsinline preload="metadata" poster="assets/product-side.jpg"></video>
+  </div>
+</section>
+
+<section class="s scenes" id="scenes">
+  <div class="wrap">
+    <div class="s-head rv">
+      <span class="eyebrow">Everyday</span>
+      <h2>어디서 먹든, 느긋하게</h2>
+    </div>
+    <div class="grid">
+      <figure class="rv"><img src="assets/scene-night.jpg" alt="늦은 밤 책상에서 눈을 감고 음식을 음미하는 사람"><figcaption><b>밤 11시, 혼자 먹는 야식</b>모니터는 잠깐 두고, 한 입을 음미하는 시간</figcaption></figure>
+      <figure class="rv"><img src="assets/scene-lunch.jpg" alt="식당에서 느긋 클립을 끼운 젓가락으로 점심을 먹는 직장인"><figcaption><b>점심 12시 30분</b>짧은 점심시간에도 속도는 내 것으로</figcaption></figure>
+      <figure class="rv"><img src="assets/scene-night2.jpg" alt="잡채를 집은 젓가락을 들고 눈을 감은 사람"><figcaption><b>오늘 하루의 마무리</b>천천히 씹을수록 맛이 보입니다</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section class="s band">
+  <div class="wrap rv">
+    <div class="tags"><span>#천천히먹기</span><span>#식사에쉼표</span><span>#느긋한한끼</span></div>
+    <h2>오늘 저녁부터, 한 입씩 느긋하게</h2>
+    <p>제품의 작동 방식과 사양을 상세 페이지에서 확인해 보세요.</p>
+    <a href="product.html" class="btn btn-dark">느긋 젓가락 클립 보러 가기 →</a>
+  </div>
+</section>
+
+<footer class="ft">
+  <div class="wrap">
+    <div>
+      <div class="logo">느긋<small>Unhurry</small></div>
+      <p style="margin-top:10px">한 입마다, 쉼표 하나.</p>
+    </div>
+    <div><h4>둘러보기</h4><ul><li><a href="#story">브랜드 이야기</a></li><li><a href="product.html">제품 상세</a></li><li><a href="#film">홍보 영상</a></li></ul></div>
+    <div><h4>안내</h4><ul><li>가상 브랜드 · 수업 과제물</li><li>생성형 AI 활용법 DAY 5</li></ul></div>
+    <p class="legal">본 페이지의 '느긋'은 실제로 판매되지 않는 가상 제품이며, 모든 제품·인물 이미지와 영상은 AI로 생성했습니다. 가격과 사양은 기획용 예시입니다.</p>
+  </div>
+</footer>
+
+<script>
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.15});
+document.querySelectorAll('.rv').forEach(el=>io.observe(el));
+</script>
+</body>
+</html>

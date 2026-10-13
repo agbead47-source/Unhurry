@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>생성형 AI 활용법 DAY 5</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root{
+  --paper:#F3F5F8; --card:#FFFFFF; --ink:#18202E; --muted:#5B6474;
+  --cobalt:#2B4ACB; --cobalt-soft:#E4E9FB; --rule:#D9DEE8;
+  --hl:#FFD84D; --hl-soft:#FFF3BF; --red:#C8342B;
+  --font:"Pretendard","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#2A3242;font-family:var(--font);color:var(--ink);-webkit-font-smoothing:antialiased}
+body{overflow:hidden;word-break:keep-all;overflow-wrap:break-word}
+#viewport{position:fixed;inset:0 0 48px 0;display:flex;align-items:center;justify-content:center}
+#stage{width:1280px;height:720px;position:relative;transform-origin:center center;flex:none}
+.slide{position:absolute;inset:0;background:var(--paper);padding:56px 72px 64px;display:none;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.slide.active{display:flex;flex-direction:column}
+.slide h2{font-size:40px;font-weight:800;letter-spacing:-.02em;line-height:1.2;margin-bottom:22px}
+.slide h3{font-size:22px;font-weight:700;letter-spacing:-.01em;margin-bottom:10px}
+.slide p,.slide li{font-size:20px;line-height:1.6}
+.lead{font-size:23px!important;color:#2B3444;max-width:62ch;margin-bottom:18px}
+.muted{color:var(--muted)}
+.small{font-size:16px!important}
+ul.list{list-style:none}
+ul.list li{padding-left:22px;position:relative;margin-bottom:8px}
+ul.list li::before{content:"";position:absolute;left:0;top:.72em;width:8px;height:8px;background:var(--cobalt)}
+b,strong{font-weight:700}
+.body{flex:1;min-height:0}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;align-items:start;align-content:start}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;align-items:start;align-content:start}
+.panel{background:var(--card);border-left:5px solid var(--cobalt);padding:20px 24px}
+.panel.flat{border-left:0;border-top:4px solid var(--ink)}
+.panel p,.panel li{font-size:18px}
+.panel .tool{margin-top:10px;font-size:15px;color:var(--cobalt);font-weight:600}
+.prompt{background:var(--ink);color:#EEF1F7;padding:22px 26px;font-size:18px;line-height:1.7;border-radius:2px}
+.prompt .lab{display:block;color:var(--hl);font-weight:700;font-size:15px;margin-bottom:8px}
+.note{margin-top:14px;font-size:16px!important;color:var(--muted)}
+table.t{width:100%;border-collapse:collapse;background:var(--card);font-size:17px}
+table.t th{background:var(--ink);color:#fff;text-align:left;padding:11px 14px;font-weight:600}
+table.t td{padding:10px 14px;border-bottom:1px solid var(--rule);vertical-align:top;line-height:1.45}
+table.t td:first-child{font-weight:700}
+.foot{position:absolute;left:72px;right:72px;bottom:22px;display:flex;justify-content:space-between;font-size:14px;color:var(--muted);border-top:1px solid var(--rule);padding-top:10px}
+/* covers */
+.slide.cover{background:var(--cobalt);color:#fff;justify-content:flex-end;padding-bottom:110px}
+.slide.cover .kicker{font-size:20px;opacity:.8;margin-bottom:14px}
+.slide.cover h1{font-size:76px;font-weight:800;letter-spacing:-.035em;line-height:1.12;max-width:17ch}
+.slide.cover .sub{font-size:24px;opacity:.9;margin-top:22px;max-width:40ch;line-height:1.5}
+.slide.cover .big-no{position:absolute;right:56px;top:20px;font-size:280px;font-weight:800;line-height:1;color:rgba(255,255,255,.12);letter-spacing:-.05em}
+.slide.cover .foot{color:rgba(255,255,255,.7);border-color:rgba(255,255,255,.25)}
+.slide.end{background:var(--ink);color:#fff;justify-content:center}
+.slide.end h1{font-size:64px;font-weight:800;letter-spacing:-.03em}
+.slide.end .foot{color:rgba(255,255,255,.6);border-color:rgba(255,255,255,.2)}
+/* timeline */
+.tl{display:grid;gap:0;border-top:3px solid var(--ink);margin-top:30px}
+.tl>div{padding:20px 18px 0 0;position:relative}
+.tl>div::before{content:"";position:absolute;top:-10px;left:0;width:16px;height:16px;background:var(--cobalt);border:3px solid var(--paper)}
+.tl .y{font-size:36px;font-weight:800;color:var(--cobalt);letter-spacing:-.02em}
+.tl p{font-size:18px;margin-top:6px}
+/* steps */
+.steps{display:grid;gap:14px}
+.steps>div{display:grid;grid-template-columns:120px 1fr;gap:18px;background:var(--card);padding:16px 20px;align-items:center}
+.steps .n{font-weight:800;color:var(--cobalt);font-size:18px}
+.steps p{font-size:18px}
+/* bars */
+.bar{display:grid;grid-template-columns:110px 1fr 64px;gap:14px;align-items:center;margin:10px 0;font-size:19px}
+.bar .track{height:26px;background:var(--rule)}
+.bar .fill{height:100%;background:var(--cobalt);transition:width .25s}
+.bar .pct{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.tokens{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+.tokens span{background:var(--card);border:2px solid var(--cobalt);padding:6px 12px;font-size:20px;font-weight:600}
+.tokens span:nth-child(3n+2){border-color:#1F8A70}
+.tokens span:nth-child(3n){border-color:#B5651D}
+input[type=range]{width:100%;accent-color:var(--cobalt)}
+input.txt{width:100%;font:inherit;font-size:20px;padding:12px 14px;border:2px solid var(--ink);background:#fff}
+.bigq{font-size:30px;font-weight:700;margin:12px 0 18px}
+.pill{display:inline-block;background:var(--cobalt-soft);color:var(--cobalt);font-weight:600;font-size:15px;padding:4px 10px;margin:4px 6px 0 0}
+.warn{border-left-color:var(--red)}
+/* bottom bar */
+#bar{position:fixed;left:0;right:0;bottom:0;height:48px;background:#1B2130;color:#C9D0DD;display:flex;align-items:center;gap:10px;padding:0 14px;font-size:14px;z-index:5}
+#bar button{background:#2E3648;color:#fff;border:0;font:inherit;font-size:14px;padding:7px 12px;cursor:pointer}
+#bar button:hover{background:#3B4560}
+#bar button:focus-visible,#toc button:focus-visible{outline:3px solid var(--hl);outline-offset:2px}
+#bar .sp{flex:1}
+#bar .ct{font-variant-numeric:tabular-nums;min-width:90px;text-align:center}
+#prog{position:fixed;left:0;bottom:48px;height:3px;background:var(--hl);z-index:5;transition:width .2s}
+#toc{position:fixed;inset:0 0 48px 0;background:rgba(20,26,38,.96);z-index:6;display:none;overflow:auto;padding:40px}
+#toc.open{display:block}
+#toc h2{color:#fff;font-size:26px;margin-bottom:20px}
+#toc .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+#toc button{background:#2A3346;color:#fff;border:0;text-align:left;padding:16px 18px;font:inherit;font-size:17px;cursor:pointer}
+#toc button small{display:block;color:#9AA6BC;font-size:13px;margin-top:4px}
+#toc button:hover{background:var(--cobalt)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+
+.code{background:#1E2533;color:#E6EAF2;font-family:"D2Coding","Consolas","Menlo",monospace;font-size:16px;line-height:1.6;padding:18px 22px;white-space:pre;overflow:hidden}
+.code .cm{color:#8FA0BA}
+.code b{color:var(--hl);font-weight:700}
+kbd{display:inline-block;font-family:inherit;font-size:.85em;font-weight:700;background:#fff;border:1.5px solid #9AA3B5;border-bottom-width:3px;padding:0 7px;line-height:1.5;border-radius:3px;color:var(--ink)}
+.devices{display:flex;align-items:flex-end;gap:22px;margin-top:20px}
+.dv{border:4px solid var(--ink);background:var(--card);position:relative;display:flex;align-items:flex-end;justify-content:center;padding-bottom:6px;font-size:15px;font-weight:700}
+.dv::before{content:"";position:absolute;left:10%;right:10%;top:12%;height:16%;background:var(--cobalt-soft)}
+.dv::after{content:"";position:absolute;left:10%;right:10%;top:34%;height:30%;background:var(--rule)}
+.dv.pc{width:230px;height:150px}.dv.tab{width:120px;height:160px}.dv.mob{width:72px;height:130px}
+.dv span{position:relative;z-index:1}
+.browser{border:3px solid var(--ink);background:var(--card)}
+.b-head{background:#E3E7EF;padding:12px 14px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;border-bottom:3px solid var(--ink);position:relative}
+.b-head .fav{background:var(--cobalt);color:#fff;width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;font-size:14px}
+.b-head .tab-t{background:#fff;padding:3px 12px;font-size:15px;font-weight:600}
+.b-head .url{flex-basis:100%;background:#fff;padding:4px 10px;font-size:14px;color:var(--muted)}
+.browser .tag{display:inline-block;background:var(--hl);font-size:13px;font-weight:700;padding:2px 8px}
+.b-body{height:230px;padding:14px;background:repeating-linear-gradient(0deg,transparent 0 34px,#EEF1F6 34px 36px)}
+.layout-demo{display:grid;gap:8px;grid-template-rows:70px 230px 70px}
+.ld{display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;border:3px solid var(--ink)}
+.ld.h{background:var(--cobalt);color:#fff}.ld.c{background:var(--card)}.ld.f{background:#3A4458;color:#fff}
+.swatches{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}
+.swatches div{height:90px;display:flex;align-items:flex-end;padding:6px;font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5)}
+input[type=color]{width:100%;height:46px;border:2px solid var(--ink);padding:2px;background:#fff;margin-top:6px}
+.wide-demo{border:3px solid var(--ink);background:var(--card);padding:10px 0}
+.wd-full{background:#3A4458;color:#fff;text-align:center;padding:16px 8px;font-weight:600;font-size:16px}
+.wd-inner{margin-top:10px;background:var(--rule)}
+.wd-inner div{width:62%;margin:0 auto;background:var(--cobalt);color:#fff;text-align:center;padding:16px 8px;font-weight:600;font-size:16px}
+.flip{position:relative;height:300px}
+.flip .pg{position:absolute;width:220px;height:260px;background:var(--card);border:3px solid var(--ink);left:60px;top:20px}
+.flip .pg:nth-child(1){transform:translate(0,0)}.flip .pg:nth-child(2){transform:translate(14px,-6px) rotate(-3deg)}.flip .pg:nth-child(3){transform:translate(28px,-12px) rotate(-6deg)}.flip .pg:nth-child(4){transform:translate(42px,-18px) rotate(-9deg)}
+.flip .pg:nth-child(5){transform:translate(56px,-24px) rotate(-12deg)}
+.flip .pg::after{content:"";position:absolute;width:44px;height:44px;border-radius:50%;background:var(--cobalt);top:100px}
+.flip .pg:nth-child(1)::after{left:20px}.flip .pg:nth-child(2)::after{left:55px}.flip .pg:nth-child(3)::after{left:90px}.flip .pg:nth-child(4)::after{left:125px}.flip .pg:nth-child(5)::after{left:155px}
+.fpsbtns{display:flex;gap:10px;margin-top:6px}
+.fpsbtns button{font:inherit;font-size:20px;font-weight:700;padding:8px 22px;border:2px solid var(--ink);background:#fff;cursor:pointer}
+.fpsbtns button.on{background:var(--ink);color:#fff}
+.tc-box{background:var(--ink);color:#fff;padding:28px;text-align:center}
+.tc-box .tc{font-size:96px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1}
+.tc-box .muted{color:#9AA6BC}
+.tc-box #tcMsg{margin-top:10px;color:var(--hl);min-height:1.5em}
+.ui-map{display:grid;grid-template-columns:1fr 1.4fr 1fr;grid-template-rows:170px 120px;gap:6px;background:#11151D;padding:6px}
+.ui-map>div{background:#2A3141;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:700;font-size:17px;text-align:center}
+.ui-map span{font-weight:400;font-size:13px;color:#AEB8CA}
+.ui-map .u-time{grid-column:1/4;background:var(--cobalt)}
+.tracks{position:relative;background:#1E2533;padding:16px 14px;display:grid;gap:10px}
+.tr{position:relative;height:58px;background:#2A3141;padding-left:70px}
+.tr>span{position:absolute;left:8px;top:18px;color:#AEB8CA;font-size:14px}
+.clip{position:absolute;top:8px;bottom:8px;margin-left:70px;max-width:calc(100% - 70px);background:var(--cobalt);color:#fff;font-size:14px;font-weight:600;display:flex;align-items:center;padding-left:10px}
+.t2 .clip{background:#1F8A70}.t3 .clip{background:#B5651D}
+.ind{position:absolute;top:6px;bottom:6px;width:3px;background:var(--hl)}
+.wave{height:70px;margin-top:14px;background:linear-gradient(90deg,transparent 49%,var(--cobalt) 49% 51%,transparent 51%),repeating-linear-gradient(90deg,var(--cobalt-soft) 0 4px,transparent 4px 7px);background-size:100% 100%,100% 30%;background-repeat:no-repeat;background-position:center,center}
+.mask-demo{position:relative;height:300px;border:3px solid var(--ink);overflow:hidden;background:#11151D}
+.md-bg{position:absolute;inset:0;background:repeating-linear-gradient(45deg,#2A3141 0 18px,#232A38 18px 36px)}
+.md-circle{position:absolute;width:180px;height:180px;border-radius:50%;left:calc(50% - 90px);top:40px;background:linear-gradient(135deg,#4F86D9,#2B4ACB);box-shadow:0 0 0 2px var(--hl)}
+.mask-demo span{position:absolute;bottom:12px;left:0;right:0;text-align:center;color:#fff;font-size:15px;font-weight:600}
+.kf-line{position:relative;height:90px;margin-top:20px;border-bottom:3px solid var(--ink)}
+.kf-line .k{position:absolute;bottom:-14px;font-size:26px;color:var(--cobalt)}
+.kf-line .lb{position:absolute;top:10px;font-size:14px;font-weight:600;background:var(--card);padding:2px 6px}
+.flow{display:grid;grid-template-columns:repeat(5,1fr);gap:0;margin-top:30px}
+.flow>div{background:var(--card);border-top:5px solid var(--cobalt);padding:20px 16px;position:relative;margin-right:22px}
+.flow>div:not(:last-child)::after{content:"";position:absolute;right:-20px;top:40%;border:9px solid transparent;border-left:12px solid var(--ink)}
+.flow b{display:block;font-size:20px;margin-bottom:8px}
+.flow span{font-size:16px;color:var(--muted);line-height:1.5}
+.steps>div{grid-template-columns:112px 1fr}
+.g2{align-content:start}
+.flow{grid-template-columns:repeat(5,1fr)}
+.cubes{display:flex;gap:26px;justify-content:center;align-items:flex-end;padding-top:60px}
+.cb{width:140px;height:140px;border-radius:18px;position:relative;box-shadow:inset -14px -14px 0 rgba(0,0,0,.12),6px 10px 18px rgba(0,0,0,.15)}
+.cb span{position:absolute;bottom:-40px;left:0;right:0;text-align:center;font-weight:700;font-size:18px}
+.cb.g{background:#4CAF6A}.cb.r{background:#D9473B}.cb.y{background:#F2C230}
+.split-demo{display:grid;gap:30px;padding-top:10px}
+.sp-bad,.sp-good{position:relative;display:flex;gap:10px;padding-bottom:30px}
+.sp-bad{width:340px;height:190px;border:3px solid var(--ink);background:var(--card);padding:12px;gap:6px}
+.sp-bad div{flex:1;background:var(--rule)}
+.sp-bad div:nth-child(1){background:#CFE8D6}.sp-bad div:nth-child(2){background:#F5D3CF}.sp-bad div:nth-child(3){background:#FBEBB8}
+.sp-good div{width:150px;height:110px;border:3px solid var(--ink)}
+.sp-good div:nth-child(1){background:#CFE8D6}.sp-good div:nth-child(2){background:#F5D3CF}.sp-good div:nth-child(3){background:#FBEBB8}
+.sp-bad span,.sp-good span{position:absolute;bottom:-6px;left:0;font-weight:700;font-size:16px}
+.sp-bad span{bottom:-34px}
+.post-mock{width:360px;height:440px;margin:0 auto;background:#F7F3EA;border:3px solid var(--ink);position:relative;overflow:hidden}
+.pm-hero{height:200px;background:linear-gradient(135deg,#9DB8A0,#D8C9A3);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff}
+.pm-title{position:absolute;top:170px;left:20px;right:20px;background:rgba(24,32,46,.8);color:#fff;font-weight:800;font-size:22px;padding:8px 12px}
+.pm-pols{display:flex;gap:10px;padding:40px 20px 0}
+.pm-pols div{flex:1;height:110px;background:#fff;border:1px solid #CCC;padding:6px 6px 24px;font-size:13px;font-weight:700;display:flex;align-items:flex-end;justify-content:center;box-shadow:2px 4px 8px rgba(0,0,0,.15)}
+.pm-pols div:nth-child(1){transform:rotate(-5deg)}.pm-pols div:nth-child(3){transform:rotate(5deg)}
+.pm-cube{position:absolute;right:20px;bottom:20px;width:50px;height:50px;background:#4CAF6A;border-radius:8px}
+.pol-demo{position:relative;height:380px}
+.pol{position:absolute;width:190px;height:230px;background:#fff;border:1px solid #CCC;padding:12px 12px 46px;box-shadow:4px 8px 18px rgba(0,0,0,.18)}
+.pol div{height:100%}
+.pol span{position:absolute;bottom:12px;left:0;right:0;text-align:center;font-weight:700;font-size:16px}
+.p1{left:20px;top:60px;transform:rotate(-8deg)}.p1 div{background:#CFE8D6}
+.p2{left:180px;top:20px;transform:rotate(3deg);z-index:2}.p2 div{background:#F5D3CF}
+.p3{left:330px;top:80px;transform:rotate(10deg)}.p3 div{background:#FBEBB8}
+.nukki{display:flex;gap:20px;justify-content:center;padding-top:20px}
+.nk{width:240px;height:300px;border:3px solid var(--ink);position:relative;display:flex;align-items:center;justify-content:center}
+.nk i{display:block}
+.nk span{position:absolute;bottom:-32px;font-weight:700;font-size:16px}
+.nk.before{background:repeating-conic-gradient(#CFCFCF 0 25%,#fff 0 50%) 0 0/24px 24px;outline:4px solid #E7774F;outline-offset:-4px}
+.nk.before i{background:#4CAF6A;border-radius:18px;width:120px;height:120px}
+.nk.after i{background:#4CAF6A;border-radius:18px;width:120px;height:120px}
+.nk.after{background:#E7774F}
+.rd-ctrl{display:grid;gap:16px;margin-top:20px}
+.rd-ctrl label{font-size:18px}
+.rd-stage{position:relative;height:420px;border:3px solid var(--ink);overflow:hidden;background:
+ radial-gradient(circle at 20% 30%,#F2C230 0 60px,transparent 61px),radial-gradient(circle at 75% 60%,#D9473B 0 80px,transparent 81px),radial-gradient(circle at 40% 80%,#4CAF6A 0 70px,transparent 71px),
+ repeating-linear-gradient(45deg,#E9E2D0 0 14px,#F7F1E1 14px 28px)}
+.rd-box{position:absolute;left:30px;right:30px;top:140px;height:150px;background:#18202E;transition:opacity .2s}
+.rd-text{position:absolute;left:50px;right:50px;top:150px;color:#fff;font-weight:800;font-size:42px;line-height:1.25;text-align:center}
+body.bare #bar,body.bare #prog{display:none}
+body.bare #viewport{bottom:0}
+</style>
+</head>
+<body>
+<div id="viewport"><div id="stage">
+<!-- ===== 1 오리엔테이션 ===== -->
+<section class="slide cover" data-sec="1">
+  <div class="big-no">D5</div>
+  <div class="kicker">생성형 AI 활용법 · DAY 5</div>
+  <h1>AI로 끝까지, 원스톱 마케팅</h1>
+  <p class="sub">세상에 없는 제품 하나를 기획하고, 이미지·디자인·영상·페이지까지 혼자 완성합니다</p>
+  <div class="foot"><span>DAY 5</span><span class="c"></span></div>
+</section>
+
+<section class="slide" data-sec="1">
+  <h2>오늘의 미션: 1부터 100까지 혼자서</h2>
+  <div class="body">
+    <div class="flow">
+      <div><b>1. 기획</b><span>제품 아이디어, 타깃, 컨셉, 키워드</span></div>
+      <div><b>2. 이미지</b><span>제품 사진, 상황별 사진, 모델 사진</span></div>
+      <div><b>3. 디자인</b><span>Canva로 SNS 홍보물, 목업</span></div>
+      <div><b>4. 피드백</b><span>AI에게 냉정한 평가 받고 수정</span></div>
+      <div><b>5. 확장</b><span>PPT·PDF, 홍보 영상, 상세 페이지</span></div>
+    </div>
+    <p class="lead" style="margin-top:36px">지금까지 배운 도구를 <b>하나의 제품</b>으로 엮는 날입니다. 오전에 강사 시연을 보고, 이후는 <b>개인 프로젝트</b>로 진행합니다.</p>
+  </div>
+  <div class="foot"><span>Mission</span><span class="c"></span></div>
+</section>
+
+<section class="slide" data-sec="1">
+  <h2>오늘 시연할 예시 제품</h2>
+  <div class="body g2">
+    <div>
+      <p class="bigq">"시니어를 위한 하루 건강 큐브"</p>
+      <p class="lead">물에 타서 마시는 큐브형 건강 음료. 색깔별로 먹는 시간이 다릅니다.</p>
+      <ul class="list">
+        <li><b>타깃:</b> 건강을 챙기는 시니어</li>
+        <li><b>컨셉:</b> 하루 루틴에 맞춘 간편한 건강 습관</li>
+        <li><b>상황:</b> 주방(아침) · 사무실(점심) · 운동(저녁)</li>
+      </ul>
+    </div>
+    <div class="cubes">
+      <div class="cb g"><span>아침</span></div>
+      <div class="cb r"><span>점심</span></div>
+      <div class="cb y"><span>저녁</span></div>
+    </div>
+  </div>
+  <div class="foot"><span>Demo Product</span><span class="c"></span></div>
+</section>
+
+<!-- ===== 2 기획 ===== -->
+<section class="slide cover" data-sec="2">
+  <div class="big-no">01</div>
+  <div class="kicker">Planning</div>
+  <h1>기획: 없는 제품을 만든다</h1>
+  <p class="sub">아이디어부터 키워드까지, AI와 회의하듯이</p>
+  <div class="foot"><span>Planning</span><span class="c"></span></div>
+</section>
+
+<section class="slide" data-sec="2">
+  <h2>제품 아이디어 찾기</h2>
+  <div class="body g2">
+    <div>
+      <ul class="list">
+        <li><b>세상에 있을 법한데 없는 것</b>을 AI와 상의해서 찾기</li>
+        <li>눈에 보이지 않는 <b>서비스(무형 상품)</b>도 OK</li>
+        <li>조금 엉뚱해도 괜찮음. 상상력이 무기</li>
+        <li>내가 관심 있는 분야에서 출발하면 끝까지 가기 쉬움</li>
+      </ul>
+    </div>
+    <div class="prompt"><span class="lab">아이디어 회의 프롬프트</span>건강·생활 분야에서 아직 시장에 없을 법한 신제품 아이디어 5개를 제안해줘. 각각 타깃 고객, 핵심 기능, 경쟁 제품과의 차이를 한 줄씩 정리해줘.</div>
+  </div>
+  <div class="foot"><span>Idea</span><span class="c"></span></div>
+</section>
+
+<section class="slide" data-sec="2">
+  <h2>기획을 구체화하기</h2>
+  <div class="body g2">
+    <div class="prompt"><span class="lab">기획 프롬프트</span>'시니어를 위한 하루 건강 큐브'를 기획하려고 해.<br>- 타깃 고객과 그들의 고민<br>- 제품 컨셉과 사용 방법<br>- 브랜드 이름 후보 3개와 슬로건<br>- 대표 색상과 그 의미<br>- SNS 홍보에 쓸 핵심 키워드 5개<br>를 정리해줘.</div>
+    <div class="panel">
+      <h3>기획에서 정해 둘 것</h3>
+      <ul class="list">
+        <li>누구를 위한 제품인가 (타깃)</li>
+        <li>무엇이 좋은가 (컨셉·차별점)</li>
+        <li>어떻게 보일 것인가 (이름·색·분위기)</li>
+        <li>무엇이라고 말할 것인가 (키워드·슬로건)</li>
+      </ul>
+      <p class="note">이 결과가 이후 이미지·디자인·영상의 기준이 됩니다.</p>
+    </div>
+  </div>
+  <div class="foot"><span>Concept</span><span class="c"></span></div>
+</section>
+
+<!-- ===== 3 이미지 생성 ===== -->
+<section class="slide cover" data-sec="3">
+  <div class="big-no">02</div>
+  <div class="kicker">Image</div>
+  <h1>제품 이미지 만들기</h1>
+  <p class="sub">한 장씩, 마음에 들 때까지</p>
+  <div class="foot"><span>Image</span><span class="c"></span></div>
+</section>
+
+<section class="slide" data-sec="3">
+  <h2>한 번에 몰아서 말고, 한 장씩 따로</h2>
+  <div class="body g2">
+    <div>
+      <p class="lead">"세 가지 상황 이미지 만들어줘"라고 하면 AI는 <b>한 장에 세 개를 합쳐</b> 버리기 쉽습니다.</p>
+      <ul class="list">
+        <li>상황마다 <b>따로</b> 요청하거나, "각각 한 장씩"이라고 분명히 말하기</li>
+        <li>AI는 명령을 제멋대로 해석할 때가 있음 → 다시 쪼개서 요청</li>
+        <li>한 번에 원하는 결과는 잘 안 나옴. 여러 번 수정이 기본</li>
+      </ul>
+    </div>
+    <div class="split-demo">
+      <div class="sp-bad"><div></div><div></div><div></div><span>한 장에 몰림</span></div>
+      <div class="sp-good"><div></div><div></div><div></div><span>상황별 한 장씩</span></div>
+    </div>
+  </div>
+  <div class="foot"><span>One by One</span><span class="c"></span></div>
+</section>
+
+<section class="slide" data-sec="3">
+  <h2>상황별 이미지 프롬프트</h2>
+  <div class="body g3">
+    <div class="prompt"><span class="lab">주방 버전 (아침)</span>아침 햇살이 드는 깔끔한 주방. 식탁 위 투명한 컵에 초록색 큐브를 물에 타는 장면. 밝고 상쾌한 분위기.</div>
+    <div class="prompt"><span class="lab">사무실 버전 (점심)</span>깔끔한 사무실 책상 위. 노트북 옆 머그컵에 빨간색 큐브가 녹고 있는 장면. 활기찬 분위기.</div>
+    <div class="prompt"><span class="lab">운동 버전 (저녁)</span>피트니스 센터. 운동 후 텀블러에 노란색 큐브를 넣는 장면. 텀블러에 제품 라벨이 보이게.</div>
+  </div>
+  <p class="note" style="font-size:18px!important">공통 조건(제품 색, 큐브 모양, 브랜드 분위기)은 매번 똑같이 넣어야 제품이 일관되게 나옵니다.</p>
+  <div class="foot"><span>Scene Prompts</span><span class="c"></span></div>
+</section>
+
+<section class="slide" data-sec="3">
+  <h2>마음에 들 때까지 수정하기</h2>
+  <div class="body g2">
+    <div class="panel">
+      <h3>수정 요청 예시</h3>
+      <ul class="list">
+        <li>"인물은 빼고 제품만 보여줘"</li>
+        <li>"큐브를 더 크게, 컵은 투명하게"</li>
+        <li>"배경을 더 밝게, 색감은 따뜻하게"</li>
+        <li>"라벨 글씨를 'DAILY CUBE'로 바꿔줘"</li>
+      </ul>
+    </div>
+    <div>
+      <p class="lead">마음에 드는지 아닌지는 <b>내가 판단</b>합니다. 아쉬우면 끝까지 프롬프트를 고쳐 가세요.</p>
+      <p class="note">고칠 점은 한 번에 하나씩, 구체적으로 말할수록 잘 바뀝니다.</p>
+    </div>
+  </div>
+  <div class="foot"><span>Iterate</span><span class="c"></span></div>
+</section>
+
+<section class="slide" data-sec="3">
+  <h2>모델 이미지: 새 창에서 제품 사진과 함께</h2>
+  <div class="body g2">
+    <div>
+      <p class="lead">대화가 길어지면 AI가 앞의 맥락을 놓쳐 엉뚱한 제품을 그리기도 합니다.</p>
+      <div class="steps">
+        <div><span class="n">1. 새 창</span><p>새 대화를 열기</p></div>
+        <div><span class="n">2. 업로드</span><p>완성된 제품 이미지를 파일로 올리기</p></div>
+        <div><span class="n">3. 요청</span><p>"이 제품을 마시는 모델"을 구체적으로</p></div>
+      </div>
+    </div>
+    <div class="prompt"><span class="lab">모델 프롬프트</span>첨부한 제품(컵에 녹는 초록색 큐브)을 그대로 사용해서, 밝은 거실에서 이 음료를 마시며 웃고 있는 60대 한국인 여성 모델 사진을 만들어줘. 제품 모양과 색은 바꾸지 마.</div>
+  </div>
+  <div class="foot"><span>Model Shot</span><span class="c"></span></div>
+</section>
+
+<section class="slide" data-sec="3">
+  <h2>인물 사진은 ImageFX도 활용</h2>
+  <div class="body g2">
+    <div>
+      <ul class="list">
+        <li>Google <b>ImageFX</b>는 사실적인 인물 사진에 강함</li>
+        <li>Gemini에서 마음에 든 이미지가 있으면 "이 이미지를 만들 <b>영어 프롬프트</b>로 바꿔줘"</li>
+        <li>그 프롬프트를 ImageFX에 넣어 더 좋은 사진 받기</li>
+        <li>도구마다 잘하는 것이 다르니 섞어 쓰기</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h3>이미지 정리 습관</h3>
+      <p>쓸 만한 이미지는 바로 내려받아 폴더 하나에 모아 두세요. 파일명은 <b>cube_morning.png</b>처럼 알아보기 쉽게.</p>
+      <p class="note">마음에 덜 드는 것도 일단 받아 두면 디자인할 때 선택지가 됩니다.</p>
+    </div>
+  </div>
+  <div class="foot"><span>ImageFX</span><span class="c"></span></div>
+</section>
+
+<!-- ===== 4 Canva 디자인 ===== -->
+<section class="slide cover" data-sec="4">
+  <div class="big-no">03</div>
+  <div class="kicker">Design</div>
+  <h1>Canva로 SNS 홍보물 만들기</h1>
+  <p class="sub">모아 둔 이미지를 하나의 디자인으로</p>
+  <div class="foot"><span>Design</span><span class="c"></span></div>
+</section>
+
+<section class="slide" data-sec="4">
+  <h2>도화지 고르고 구성 정하기</h2>
+  <div class="body g2">
+    <div>
+      <p class="lead">[만들기] → <b>소셜 미디어 → 인스타그램 게시물</b>처럼 용도에 맞는 크기로 시작합니다. 템플릿을 써도 됩니다.</p>
+      <ul class="list">
+        <li>메인: 제품을 마시는 시니어 모델 사진</li>
+        <li>포인트: 아침·점심·운동 루틴 사진 3장</li>
+        <li>제품: 배경을 지운 큐브 이미지</li>
+        <li>문구: 제품 이름, 슬로건, 키워드</li>
+      </ul>
+    </div>
+    <div class="post-mock">
+      <div class="pm-hero">모델 사진</div>
+      <div class="pm-title">하루 건강 큐브</div>
+      <div class="pm-pols"><div>아침</div><div>점심</div><div>운동</div></div>
+      <div class="pm-cube"></div>
+    </div>
+  </div>
+  <div class="foot"><span>Layout</span><span class="c"></span></div>
+</section>
+
+<section class="slide" data-sec="4">
+  <h2>폴라로이드 프레임에 사진 넣기 (목업)</h2>
+  <div class="body g2">
+    <div class="steps">
+      <div><span class="n">1. 검색</span><p>왼쪽 [요소]에서 '폴라로이드' 검색, 왕관 없는 무료 프레임 고르기</p></div>
+      <div><span class="n">2. 끌어 놓기</span><p>내려받은 루틴 사진을 프레임 위로 끌어다 놓으면 안쪽에 쏙 들어감</p></div>
+      <div><span class="n">3. 배치</span><p>살짝 회전시켜 세 장을 겹치듯 배치</p></div>
+    </div>
+    <div class="pol-demo">
+      <div class="pol p1"><div></div><span>아침</span></div>
+      <div class="pol p2"><div></div><span>점심</span></div>
+      <div class="pol p3"><div></div><span>운동</span></div>
+    </div>
+  </div>
+  <div class="foot"><span>Polaroid Mockup</span><span class="c"></span></div>
+</section>
+
+<section class="slide" data-sec="4">
+  <h2>투명 배경 큐브는 remove.bg로</h2>
+  <div class="body g2">
+    <div>
+      <p class="lead">Gemini에 "배경이 투명한 큐브"를 요청해도 <b>체크무늬를 그린 가짜 투명</b>이 나올 수 있습니다.</p>
+      <ul class="list">
+        <li>Canva의 배경 제거는 유료</li>
+        <li><b>remove.bg</b>에 이미지 업로드 → 배경 제거 → 무료 다운로드</li>
+        <li>받은 PNG를 Canva에 올려서 배치</li>
+      </ul>
+    </div>
+    <div class="nukki">
+      <div class="nk before"><span>가짜 투명</span><i></i></div>
+      <div class="nk after"><span>remove.bg 후</span><i></i></div>
+    </div>
+  </div>
+  <div class="foot"><span>Remove Background</span><span class="c"></span></div>
+</section>
+
+<section class="slide" data-sec="4">
+  <h2>가독성: 글씨 밑에 받침 깔기</h2>
+  <div class="body g2">
+    <div>
+      <p class="lead">홍보물에서 가장 중요한 것은 <b>가독성</b>입니다. 사진 위에 바로 글씨를 올리면 잘 안 보입니다.</p>
+      <ul class="list">
+        <li>[요소] → 사각형을 글씨 밑에 깔기</li>
+        <li>투명도를 조절해 사진도 살짝 보이게</li>
+      </ul>
+      <div class="rd-ctrl">
+        <span class="fpsbtns" id="rdMode"><button data-v="off">받침 없음</button><button data-v="on">받침 깔기</button></span>
+        <label><b>받침 투명도</b> <span id="rdOpV">70</span>%<input type="range" id="rdOp" min="10" max="100" value="70" aria-label="받침 투명도"></label>
+      </div>
+    </div>
+    <div class="rd-stage">
+      <div class="rd-box" id="rdBox"></div>
+      <div class="rd-text">하루 세 번,<br>건강 큐브</div>
+    </div>
+  </div>
+  <div class="foot"><span>Readability</span><span class="c"></span></div>
+</section>
+
+<section class="slide" data-sec="4">
+  <h2>텍스트 넣고 효과 주기</h2>
+  <div class="body g3">
+    <div class="panel"><h3>텍스트 추가</h3><p>왼쪽 <b>T 텍스트</b> → 텍스트 상자 추가. 이미 꾸며진 스타일 텍스트를 골라도 됨</p></div>
+    <div class="panel"><h3>문구 채우기</h3><p>기획 단계의 키워드·슬로건 활용. 막히면 <b>매직 라이트</b>(AI 글쓰기)</p></div>
+    <div class="panel"><h3>효과</h3><p>위쪽 도구 막대에서 글꼴·크기·색, [효과]에서 그림자·윤곽선</p></div>
+  </div>
+  <p class="note" style="font-size:18px!important">복사는 <kbd>Alt</kbd>+드래그. 다 만들면 [공유] → 다운로드로 이미지 저장</p>
+  <div class="foot"><span>Text &amp; Effects</span><span class="c"></span></div>
+</section>
+
+<!-- ===== 5 AI 피드백 ===== -->
+<section class="slide cover" data-sec="5">
+  <div class="big-no">04</div>
+  <div class="kicker">Feedback</div>
+  <h1>AI에게 냉정하게 평가받기</h1>
+  <p class="sub">"다 만들었어요"가 아니라 "어디를 고칠까요?"</p>
+  <div class="foot"><span>Feedback</span><span class="c"></span></div>
+</section>
+
+<section class="slide" data-sec="5">
+  <h2>디자인을 캡처해서 물어보기</h2>
+  <div class="body g2">
+    <div class="steps">
+      <div><span class="n">1. 캡처</span><p>완성한 디자인을 캡처하거나 내려받기</p></div>
+      <div><span class="n">2. 질문</span><p>Gemini·ChatGPT에 올리고 평가 요청</p></div>
+      <div><span class="n">3. 판단</span><p>맞는 지적만 골라서 수정</p></div>
+    </div>
+    <div class="prompt"><span class="lab">평가 요청 프롬프트</span>이 디자인은 시니어 대상 건강 음료의 인스타그램 홍보물이야. <span style="color:var(--hl)">냉정하고 객관적으로</span> 평가해서 수정할 부분을 구체적으로 알려줘. 가독성, 색 조합, 배치, 타깃에 맞는지 기준으로 봐줘.</div>
+  </div>
+  <div class="foot"><span>Ask for Critique</span><span class="c"></span></div>
+</section>
+
+<section class="slide" data-sec="5">
+  <h2>피드백을 받아들이는 법</h2>
+  <div class="body g2">
+    <div>
+      <ul class="list">
+        <li>"같은 이미지가 반복된다", "하단 배경색이 안 어울린다"처럼 구체적인 지적이 나옴</li>
+        <li>AI의 말이 100% 맞지는 않음 → <b>맞다고 생각하는 것만</b> 반영</li>
+        <li>어떻게 배치할지 모르겠으면 가이드라인을 요청</li>
+        <li>"이 가이드라인대로 네가 수정 방안을 그려 줘"라고 시켜 보기도 가능</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h3>이렇게 시안을 만들어 갑니다</h3>
+      <p>만들기 → 평가받기 → 고치기를 두세 번 반복하면 혼자 만든 디자인도 훨씬 완성도가 올라갑니다.</p>
+    </div>
+  </div>
+  <div class="foot"><span>Apply Feedback</span><span class="c"></span></div>
+</section>
+
+<section class="slide" data-sec="5">
+  <h2>지금까지의 과정을 발표 자료로</h2>
+  <div class="body g2">
+    <div class="prompt"><span class="lab">요약 프롬프트</span>지금까지 우리가 대화하면서 진행한 제품 기획부터 이미지 제작, 디자인 수정까지의 과정을 프레젠테이션용으로 요약 정리해줘. 슬라이드별 제목과 핵심 내용으로 나눠줘.</div>
+    <div class="panel">
+      <h3>활용</h3>
+      <ul class="list">
+        <li>같은 대화창에서 요청하면 처음부터 끝까지 흐름을 정리해 줌</li>
+        <li>이 요약으로 PPT·PDF 기획서 만들기</li>
+        <li>빠진 내용은 직접 추가</li>
+      </ul>
+    </div>
+  </div>
+  <div class="foot"><span>Summarize</span><span class="c"></span></div>
+</section>
+
+<!-- ===== 6 개인 프로젝트 ===== -->
+<section class="slide cover" data-sec="6">
+  <div class="big-no">05</div>
+  <div class="kicker">Personal Project</div>
+  <h1>이제 여러분 차례</h1>
+  <p class="sub">내 제품 하나로, 마케팅 전부를</p>
+  <div class="foot"><span>Project</span><span class="c"></span></div>
+</section>
+
+<section class="slide" data-sec="6">
+  <h2>오늘 만들 결과물</h2>
+  <div class="body g3">
+    <div class="panel"><h3>① 기획서</h3><p>제품 기획 내용을 PPT 또는 PDF 문서로</p></div>
+    <div class="panel"><h3>② 제품 이미지</h3><p>제품 사진, 상황별 사진, 모델 사진</p></div>
+    <div class="panel"><h3>③ 포스터 · 광고 시안</h3><p>SNS 홍보물, 목업으로 실제처럼</p></div>
+    <div class="panel"><h3>④ 홍보 영상</h3><p>짧은 클립을 이어 붙인 광고 영상</p></div>
+    <div class="panel flat"><h3>⑤ 상세 페이지 (도전)</h3><p>가능하면 홈페이지 안에 제품 상세 페이지까지</p></div>
+    <div class="panel flat"><h3>제출</h3><p>완성한 결과물을 모두 밴드에 올리기</p></div>
+  </div>
+  <div class="foot"><span>Deliverables</span><span class="c"></span></div>
+</section>
+
+<section class="slide" data-sec="6">
+  <h2>단계별로 쓸 도구</h2>
+  <div class="body">
+  <table class="t">
+    <tr><th style="width:20%">단계</th><th>도구</th><th style="width:38%">포인트</th></tr>
+    <tr><td>기획</td><td>Gemini, ChatGPT, Claude</td><td>아이디어 회의, 타깃·키워드 정리</td></tr>
+    <tr><td>이미지</td><td>Gemini(Nano Banana), ImageFX</td><td>한 장씩, 새 창에 제품 이미지 첨부</td></tr>
+    <tr><td>보정</td><td>remove.bg</td><td>투명 배경 만들기</td></tr>
+    <tr><td>디자인</td><td>Canva, Figma, Ideogram(로고)</td><td>가독성, 목업, AI 피드백</td></tr>
+    <tr><td>영상 · 음악</td><td>Grok·Veo 등 영상 AI, Suno, CapCut</td><td>짧은 클립 여러 개 → 이어 붙여 30초</td></tr>
+    <tr><td>상세 페이지</td><td>Gemini·Claude 바이브 코딩, Netlify</td><td>HTML로 만들어 배포</td></tr>
+  </table>
+  </div>
+  <div class="foot"><span>Tools</span><span class="c"></span></div>
+</section>
+
+<section class="slide" data-sec="6">
+  <h2>홍보할 때 지켜야 할 것</h2>
+  <div class="body g2">
+    <div class="panel warn">
+      <h3>하지 말 것</h3>
+      <ul class="list">
+        <li>실존 브랜드·캐릭터·유명인을 그대로 쓰기</li>
+        <li>"병이 낫는다"처럼 효능을 과장하거나 의사인 척하는 광고</li>
+        <li>근거 없는 수치·후기 지어내기</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h3>할 것</h3>
+      <ul class="list">
+        <li>가상 제품임을 분명히 하기</li>
+        <li>AI로 만든 이미지·영상임을 표시하기</li>
+        <li>사람들이 믿을 수 있는 정직한 문구 쓰기</li>
+      </ul>
+      <p class="note">AI 의사가 나오는 광고가 신뢰를 잃는 이유를 생각해 보세요.</p>
+    </div>
+  </div>
+  <div class="foot"><span>Ethics</span><span class="c"></span></div>
+</section>
+
+<section class="slide" data-sec="6">
+  <h2>상세 페이지를 만든다면: 코드도 조금은 보기</h2>
+  <div class="body g2">
+    <div>
+      <p class="lead">AI가 1부터 100까지 다 만들어 줘도, <b>코드를 조금이라도 보는 습관</b>이 있어야 고칠 수 있습니다.</p>
+      <ul class="list">
+        <li>Cursor 같은 에디터형 도구는 코드를 보면서 작업하게 됨</li>
+        <li>ChatGPT(Codex), Claude 등은 만든 뒤 스스로 실행해 보며 고치기도 함</li>
+        <li>어떤 도구든, 어디를 고칠지 말할 수 있을 만큼은 이해하기</li>
+      </ul>
+    </div>
+    <div class="prompt"><span class="lab">상세 페이지 요청 예시</span>첨부한 기획서와 이미지를 바탕으로 '하루 건강 큐브' 제품 상세 페이지를 HTML, CSS, JavaScript로 만들어줘. 반응형으로, 상단 메인 이미지 · 제품 특징 3가지 · 사용 방법 · 상황별 사진 · 구매 버튼 순서로 구성해줘.</div>
+  </div>
+  <div class="foot"><span>Detail Page</span><span class="c"></span></div>
+</section>
+
+<section class="slide end" data-sec="6">
+  <h1>상상력이 곧 기획력입니다</h1>
+  <p style="font-size:24px;opacity:.85;margin-top:18px;line-height:1.6">조금 엉뚱해도 괜찮습니다. 내 제품 하나를 끝까지 완성해서 밴드에 올려 주세요.</p>
+  <div class="foot"><span>Let's Start</span><span class="c"></span></div>
+</section>
+
+</div></div>
+<div id="prog"></div>
+<nav id="bar" aria-label="슬라이드 이동">
+  <button id="btnToc" aria-label="목차 열기">목차</button>
+  <span id="secName"></span>
+  <span class="sp"></span>
+  <button id="prev" aria-label="이전 슬라이드">이전</button>
+  <span class="ct" id="count"></span>
+  <button id="next" aria-label="다음 슬라이드">다음</button>
+  <button id="btnBare" title="하단 막대 숨기기 (B)">막대 숨기기</button>
+  <button id="btnFs" title="전체 화면 (F)">전체 화면</button>
+</nav>
+<div id="toc" role="dialog" aria-label="목차"><h2>목차</h2><div class="grid" id="tocGrid"></div></div>
+<script>
+(function(){
+
+  const SECTIONS=["", "오리엔테이션", "기획", "이미지 생성", "Canva 디자인", "AI 피드백", "개인 프로젝트"];
+  const all=[...document.querySelectorAll('.slide')];
+  const stage=document.getElementById('stage'), vp=document.getElementById('viewport');
+  let idx=0, chan=null;
+  try{ chan=new BroadcastChannel('ai-lecture-day5'); }catch(e){}
+  const bySec={};
+  all.forEach(s=>{(bySec[s.dataset.sec]=bySec[s.dataset.sec]||[]).push(s)});
+  Object.values(bySec).forEach(arr=>arr.forEach((s,i)=>{const c=s.querySelector('.foot .c'); if(c) c.textContent=String(i+1).padStart(2,'0')+' / '+String(arr.length).padStart(2,'0');}));
+  function fit(){ const sc=Math.min(vp.clientWidth/1280, vp.clientHeight/720)*0.96; stage.style.transform='scale('+sc+')'; }
+  function show(i, fromRemote){
+    idx=Math.max(0,Math.min(i,all.length-1));
+    all.forEach(s=>s.classList.remove('active'));
+    const cur=all[idx]; cur.classList.add('active');
+    document.getElementById('count').textContent=(idx+1)+' / '+all.length;
+    document.getElementById('secName').textContent=String(cur.dataset.sec).padStart(2,'0')+' '+SECTIONS[cur.dataset.sec];
+    document.getElementById('prog').style.width=((idx+1)/all.length*100)+'%';
+    history.replaceState(null,'','#'+(idx+1));
+    if(window.onShow) window.onShow(idx, fromRemote);
+  }
+  const grid=document.getElementById('tocGrid');
+  Object.keys(bySec).forEach(k=>{
+    const b=document.createElement('button');
+    b.innerHTML=String(k).padStart(2,'0')+' '+SECTIONS[k]+'<small>'+bySec[k].length+'장</small>';
+    b.onclick=()=>{show(all.indexOf(bySec[k][0]));toc(false)};
+    grid.appendChild(b);
+  });
+  const tocEl=document.getElementById('toc');
+  function toc(open){tocEl.classList.toggle('open',open===undefined?!tocEl.classList.contains('open'):open)}
+  document.getElementById('btnToc').onclick=()=>toc();
+  document.getElementById('prev').onclick=()=>show(idx-1);
+  document.getElementById('next').onclick=()=>show(idx+1);
+  document.getElementById('btnFs').onclick=()=>{ if(!document.fullscreenElement) document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen(); else document.exitFullscreen(); };
+  document.addEventListener('keydown',e=>{
+    if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return;
+    if(['ArrowRight','PageDown',' '].includes(e.key)){e.preventDefault();show(idx+1)}
+    else if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();show(idx-1)}
+    else if(e.key==='Home') show(0);
+    else if(e.key==='End') show(all.length-1);
+    else if(e.key==='m'||e.key==='M') toc();
+    else if(e.key==='Escape') toc(false);
+    else if(e.key==='f'||e.key==='F') document.getElementById('btnFs').click();
+    else if(window.onKey) window.onKey(e);
+  });
+  let tx=null;
+  vp.addEventListener('touchstart',e=>{tx=e.touches[0].clientX},{passive:true});
+  vp.addEventListener('touchend',e=>{ if(tx===null) return; const d=e.changedTouches[0].clientX-tx; if(Math.abs(d)>50) show(idx+(d<0?1:-1)); tx=null; });
+  const emit=(k,v)=>{ if(window.onDemo) window.onDemo(k,v); };
+
+  // 데모: 가독성 받침
+  const rm=document.getElementById('rdMode'), ro=document.getElementById('rdOp'), rb=document.getElementById('rdBox');
+  let rMode='off';
+  function rdRender(){
+    if(!rb) return;
+    document.getElementById('rdOpV').textContent=ro.value;
+    rb.style.opacity = rMode==='on' ? ro.value/100 : 0;
+    [...rm.children].forEach(b=>b.classList.toggle('on',b.dataset.v===rMode));
+  }
+  if(rm){
+    [...rm.children].forEach(b=>b.onclick=()=>{rMode=b.dataset.v;rdRender();emit('rmode',rMode);});
+    ro.addEventListener('input',()=>{rdRender();emit('rop',ro.value);});
+    rdRender();
+  }
+  function applyDemo(kind,v){
+    if(kind==='rmode'){rMode=v;rdRender();}
+    else if(kind==='rop'&&ro){ro.value=v;rdRender();}
+  }
+  window.addEventListener('hashchange',()=>{const n=parseInt(location.hash.slice(1)); if(n>0&&n-1!==idx) show(n-1);});
+  window.addEventListener('resize',fit);
+
+  function bare(){document.body.classList.toggle('bare'); fit();}
+  document.getElementById('btnBare').onclick=bare;
+  window.onKey=e=>{ if(e.key==='b'||e.key==='B') bare(); };
+  if(chan) chan.onmessage=e=>{ const d=e.data||{}; if(d.type==='go') show(d.i,true); else if(d.type==='demo') applyDemo(d.kind,d.v); };
+  fit();
+  const h=parseInt(location.hash.slice(1)); show(h>0? h-1:0);
+})();
+</script>
+</body>
+</html>
